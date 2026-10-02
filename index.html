@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>WGVRP CAD</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d0f12; --panel:#15181e; --panel2:#1e222b; --line:#2a2f3a; --text:#e6e9ef; --muted:#8b93a3;
+  --green:#10b981; --red:#ef4444; --amber:#f59e0b; --blue:#3b82f6; --purple:#8b5cf6;
+  --ac:#3b82f6; --ad:#1d4ed8;
+  --display:'Barlow Condensed','Arial Narrow',system-ui,sans-serif;--mono:ui-monospace,'SF Mono',Consolas,monospace; --body:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;
+  color-scheme:dark;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;height:100%;background:var(--bg);color:var(--text);font:13px/1.45 var(--body);overflow:hidden}
+button,input,select,textarea{font:inherit;color:inherit}
+.hidden{display:none!important}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:#2c323e;border-radius:4px}
+
+/* ---------- auth / dept / admin screens ---------- */
+.screen{position:fixed;inset:0;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px);overflow:auto;display:flex;align-items:center;justify-content:center;padding:20px;
+  background:radial-gradient(900px 500px at 15% 10%,rgba(59,130,246,.10),transparent 60%),radial-gradient(800px 500px at 90% 95%,rgba(139,92,246,.10),transparent 60%),var(--bg)}
+.card{width:100%;max-width:420px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:28px;box-shadow:0 30px 80px rgba(0,0,0,.55)}
+.card.wide{max-width:720px}
+.logo{width:54px;height:54px;border-radius:12px;background:linear-gradient(135deg,var(--blue),var(--purple));display:grid;place-items:center;margin:0 auto 14px}
+.brand{font:700 26px/1 var(--display);letter-spacing:.06em;text-align:center}
+.sub{color:var(--muted);text-align:center;margin:6px 0 20px}
+.tabs2{display:grid;grid-template-columns:1fr 1fr;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:3px;margin-bottom:16px}
+.tabs2 button{background:none;border:0;padding:8px;border-radius:6px;cursor:pointer;color:var(--muted);font-weight:600}
+.tabs2 button.on{background:var(--panel2);color:var(--text)}
+label.f{display:block;margin:0 0 12px}
+label.f span{display:block;color:var(--muted);font-size:12px;margin-bottom:4px}
+.inp,select.inp,textarea.inp{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:9px 10px;outline:none}
+.inp:focus{border-color:var(--ac);box-shadow:0 0 0 2px color-mix(in srgb,var(--ac) 30%,transparent)}
+.inp:disabled{opacity:.75;cursor:not-allowed}
+textarea.inp{min-height:84px;resize:vertical}
+.btn{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:8px 14px;cursor:pointer;font-weight:600;transition:border-color .15s,background .15s}
+.btn:hover{border-color:#3b4251}
+.btn.pri{background:var(--ad);border-color:var(--ac);color:#fff}
+.btn.pri:hover{background:var(--ac)}
+.btn.danger{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.5);color:#fca5a5}
+.btn.sm{padding:4px 10px;font-size:12px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.block{width:100%;padding:10px}
+.err{color:#fca5a5;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.35);padding:8px 10px;border-radius:6px;margin-bottom:12px}
+.ok{color:#6ee7b7}
+.dept-head{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+.dept-head h1{margin:0;font:700 22px var(--display);letter-spacing:.04em}
+.dept-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.dcard{position:relative;background:var(--bg);border:1px solid var(--line);border-left:4px solid var(--ac);border-radius:8px;padding:16px;cursor:pointer;text-align:left;transition:transform .15s,border-color .15s}
+.dcard:hover{transform:translateY(-2px);border-color:var(--ac)}
+.dcard .code{display:inline-block;font:700 15px var(--display);letter-spacing:.08em;padding:3px 10px;border-radius:5px;background:color-mix(in srgb,var(--ac) 18%,transparent);border:1px solid var(--ac);color:var(--ac);margin-bottom:8px}
+.dcard .rm{position:absolute;top:8px;right:8px}
+.dcard.add{border-style:dashed;border-left:1px dashed var(--line);--ac:#64748b}
+.row-end{display:flex;justify-content:space-between;align-items:center;margin-top:18px;gap:10px;flex-wrap:wrap}
+
+.ok-box{color:#6ee7b7;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.4);padding:10px 12px;border-radius:6px;margin-bottom:12px}
+h4.sec2{margin:18px 0 8px;font:600 14px var(--display)}
+/* ---------- admin ---------- */
+.tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.tbl th,.tbl td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line)}
+.tbl th{color:var(--muted);font-weight:500}
+.scroll-x{overflow-x:auto}
+.pw{font-family:ui-monospace,Consolas,monospace;color:#fde68a}
+
+/* ---------- app shell ---------- */
+#app{position:fixed;inset:0;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px);display:grid;grid-template-columns:58px 1fr;grid-template-rows:56px 1fr 28px;background:var(--bg)}
+.topbar{grid-column:1/3;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;padding:0 12px;border-bottom:1px solid var(--line);background:var(--bg);position:relative;z-index:5;min-width:0}
+.statusbar{display:flex;gap:8px;flex-wrap:nowrap;overflow-x:auto;min-width:0}
+.st{background:transparent;border:1px solid var(--sc);color:var(--sc);border-radius:8px;padding:6px 14px;cursor:pointer;font-weight:600;white-space:nowrap;transition:background .15s}
+.st:hover{background:color-mix(in srgb,var(--sc) 15%,transparent)}
+.st.on{background:var(--sc);color:#0d0f12;box-shadow:0 0 14px color-mix(in srgb,var(--sc) 55%,transparent)}
+.title{display:flex;align-items:center;gap:10px;font:700 17px var(--display);letter-spacing:.06em;white-space:nowrap}
+.title small{font:500 12px var(--body);color:var(--muted);letter-spacing:0}
+.dbadge{width:10px;height:10px;border-radius:50%;background:var(--ac);box-shadow:0 0 10px var(--ac)}
+.tright{display:flex;justify-content:flex-end;align-items:center;gap:10px;min-width:0;position:relative}
+.panic-btn{display:flex;align-items:center;gap:6px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.6);color:#fca5a5;border-radius:8px;padding:6px 12px;cursor:pointer;font-weight:700;letter-spacing:.04em}
+.panic-btn:hover{background:rgba(239,68,68,.25)}
+.panic-btn.live{background:var(--red);color:#fff;animation:pBtn .6s infinite alternate}
+@keyframes pBtn{to{box-shadow:0 0 18px #ef4444}}
+.csign{display:flex;align-items:center;gap:7px;background:color-mix(in srgb,var(--ac) 16%,var(--bg));border:1px solid var(--ac);border-radius:8px;padding:6px 12px;cursor:pointer;white-space:nowrap}
+.csign b{color:var(--ac);font:700 14px var(--display);letter-spacing:.06em}
+.csign i{font-style:normal;color:var(--text)}
+.umenu{position:absolute;top:44px;right:0;background:var(--panel);border:1px solid var(--line);border-radius:8px;min-width:190px;padding:6px;box-shadow:0 14px 40px rgba(0,0,0,.6);z-index:20}
+.umenu button{display:block;width:100%;text-align:left;background:none;border:0;padding:9px 10px;border-radius:6px;cursor:pointer}
+.umenu button:hover{background:var(--panel2)}
+.umenu .who{padding:8px 10px;color:var(--muted);border-bottom:1px solid var(--line);margin-bottom:4px}
+.side{grid-row:2/4;display:flex;flex-direction:column;align-items:center;justify-content:space-around;padding:10px 0;border-right:1px solid var(--line);background:var(--bg)}
+.nav{position:relative;width:42px;height:42px;display:grid;place-items:center;background:none;border:0;border-radius:10px;color:var(--muted);cursor:pointer}
+.nav:hover{color:var(--text);background:var(--panel)}
+.nav.on{color:var(--ac);background:color-mix(in srgb,var(--ac) 14%,transparent)}
+.nav.on::before{content:"";position:absolute;left:-8px;top:8px;bottom:8px;width:3px;border-radius:0 3px 3px 0;background:var(--ac)}
+main{min-height:0;overflow:auto;padding:12px}
+.foot{display:flex;justify-content:space-between;align-items:center;padding:0 14px;border-top:1px solid var(--line);color:var(--muted);font-size:11.5px}
+.view{height:100%}
+.grid2{display:grid;grid-template-columns:minmax(300px,.85fr) 1.3fr;gap:12px;height:100%;min-height:0}
+.grid2b{display:grid;grid-template-columns:1.2fr 1fr;gap:12px;height:100%;min-height:0}
+.stack{display:flex;flex-direction:column;gap:12px;min-height:0;min-width:0}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;min-height:0;min-width:0;flex:1}
+.panel.fit{flex:0 1 auto}
+.panel-h{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+.panel-h h3{margin:0;font:600 15px var(--display);letter-spacing:.04em}
+.search{width:160px;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:5px 9px;outline:none}
+.search:focus{border-color:var(--ac)}
+.ptabs{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:3px;margin-bottom:10px;gap:3px}
+.ptabs button{background:none;border:0;border-radius:6px;padding:7px;cursor:pointer;color:var(--muted);display:flex;justify-content:center;align-items:center;gap:7px}
+.ptabs button.on{background:var(--panel2);color:var(--text);box-shadow:inset 0 0 0 1px var(--line)}
+.cnt{background:rgba(16,185,129,.18);color:#6ee7b7;border-radius:10px;padding:0 7px;font-size:11px}
+.tbody{overflow:auto;min-height:60px;flex:1}
+.thead,.row{display:grid;gap:10px;align-items:center;padding:9px 10px;min-width:720px}
+.calls-cols{grid-template-columns:104px 74px minmax(110px,1.2fr) minmax(110px,1.2fr) 66px 100px 100px minmax(120px,1.3fr)}
+.units-cols{grid-template-columns:minmax(200px,1.6fr) 70px minmax(80px,1fr) 110px 90px 60px}
+.thead{color:var(--muted);font-size:12px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--panel);z-index:1}
+.row{background:var(--panel2);border:1px solid var(--line);border-radius:8px;margin-top:6px;cursor:pointer;transition:border-color .15s}
+.row:hover{border-color:#414858}
+.row.droppable.drop-hot,#primaryZone.drop-hot{border-color:var(--ac);background:color-mix(in srgb,var(--ac) 16%,var(--panel2));box-shadow:0 0 0 2px color-mix(in srgb,var(--ac) 40%,transparent)}
+.unit-row{cursor:default}
+.unit-row[draggable="true"]{cursor:grab}
+.unit-row.dragging{opacity:.4}
+.empty{display:flex;align-items:center;gap:10px;padding:18px 12px;color:var(--muted);border:1px dashed var(--line);border-radius:8px;margin-top:8px}
+.pill{display:inline-flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:2px 8px;font-weight:600;font-size:12px;white-space:nowrap}
+.uchip{display:inline-flex;align-items:center;gap:6px;background:color-mix(in srgb,var(--ac) 18%,var(--bg));border:1px solid color-mix(in srgb,var(--ac) 70%,transparent);border-radius:14px;padding:2px 10px 2px 8px;font-size:12px;white-space:nowrap;margin:2px 4px 2px 0}
+.uchip b{color:var(--ac);font:700 12px var(--display);letter-spacing:.06em}
+.uchip i{font-style:normal}
+.uchip .x{background:none;border:0;cursor:pointer;color:var(--muted);padding:0 0 0 2px;font-size:14px;line-height:1}
+.uchip .x:hover{color:#fff}
+.stp{font-weight:600}
+.s-pending{color:var(--amber)}.s-open{color:var(--green)}.s-closed{color:var(--muted)}
+.t-emerg{color:#fca5a5}.t-non{color:#93c5fd}
+
+/* panic */
+.unit-row.panic{background:rgba(239,68,68,.14);animation:pRow .55s infinite alternate}
+@keyframes pRow{from{box-shadow:inset 0 0 0 2px #ef4444,0 0 0 rgba(239,68,68,0);border-color:#ef4444}to{box-shadow:inset 0 0 0 2px rgba(239,68,68,.15),0 0 18px rgba(239,68,68,.85);border-color:#ef4444}}
+.pbadge{display:inline-flex;align-items:center;gap:7px;margin-right:8px;vertical-align:middle}
+.pbadge .c{width:30px;height:30px;border-radius:50%;background:var(--red);display:grid;place-items:center;box-shadow:0 0 12px rgba(239,68,68,.8)}
+.pbadge span{font:700 12px var(--display);letter-spacing:.08em;color:#fecaca}
+
+/* unit call alert flashes */
+@keyframes fBlue{0%,100%{background:var(--panel2);box-shadow:none}50%{background:rgba(59,130,246,.5);box-shadow:0 0 24px 3px #3b82f6,inset 0 0 0 1px #93c5fd;border-color:#60a5fa}}
+@keyframes fRed{0%,100%{background:var(--panel2);box-shadow:none}50%{background:rgba(185,28,28,.6);box-shadow:0 0 24px 3px #b91c1c,inset 0 0 0 1px #f87171;border-color:#ef4444}}
+@keyframes fAmber{0%,100%{background:var(--panel2);box-shadow:none}50%{background:rgba(245,158,11,.5);box-shadow:0 0 24px 3px #f59e0b,inset 0 0 0 1px #fcd34d;border-color:#f59e0b}}
+.fl-OCSO{animation:fBlue .5s ease-in-out 10}
+.fl-GVFD{animation:fRed 1s ease-in-out 5}
+.fl-DOT{animation:fAmber 1s ease-in-out 5}
+
+/* form */
+.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
+.formgrid .full{grid-column:1/3}
+.formgrid label span{display:block;color:var(--muted);font-size:12px;margin-bottom:4px}
+.req{color:var(--red)}
+#primaryZone{border:1px dashed #475063;border-radius:8px;padding:10px;color:var(--muted);min-height:40px;display:flex;align-items:center;flex-wrap:wrap}
+
+/* modal / toast */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.66);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50;backdrop-filter:blur(2px)}
+.modal{background:var(--panel);border:1px solid var(--line);border-radius:12px;width:100%;max-width:760px;max-height:92%;overflow:auto;padding:20px;box-shadow:0 30px 90px rgba(0,0,0,.7)}
+.modal.sm{max-width:420px}
+.modal h2{margin:0 0 4px;font:700 19px var(--display);letter-spacing:.03em}
+.mh{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px}
+.tl{margin-top:6px;display:flex;flex-direction:column;gap:6px}
+.tl div{display:flex;justify-content:space-between;gap:10px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 10px}
+.tl time{color:var(--muted);white-space:nowrap;font-size:12px}
+.toasts{position:fixed;right:14px;bottom:calc(40px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px;z-index:80}
+.toast{background:var(--panel2);border:1px solid var(--line);border-left:4px solid var(--ac);border-radius:8px;padding:10px 14px;box-shadow:0 12px 30px rgba(0,0,0,.5);max-width:320px;animation:tIn .2s ease-out}
+.toast.bad{border-left-color:var(--red)}
+@keyframes tIn{from{transform:translateX(20px);opacity:0}to{transform:none;opacity:1}}
+h4.sec{margin:14px 0 6px;font:600 13px var(--display);letter-spacing:.04em;color:var(--muted)}
+
+@media (max-width:980px){
+  .grid2,.grid2b{grid-template-columns:1fr;height:auto}
+  main{padding:8px}
+  .topbar{grid-template-columns:1fr auto}
+  .title{display:none}
+  .csign i{display:none}
+}
+@media (prefers-reduced-motion:reduce){.panic-btn.live{animation:none}}
+
+/* ===== v3 visual layer ===== */
+body{letter-spacing:.005em}
+.screen{background:var(--bg) radial-gradient(#171b22 1px,transparent 1px) 0 0/18px 18px}
+.logo{background:var(--panel2);border:1px solid var(--line);border-radius:8px}
+.card,.modal{border-radius:8px}
+.btn,.inp,select.inp,textarea.inp,.search,.toast{border-radius:4px}
+.inp,select.inp,textarea.inp,.search{background:#0f1217;border-color:#262c37}
+.btn.pri{box-shadow:none;letter-spacing:.01em}
+.auth-wrap{display:grid;grid-template-columns:1.05fr 1fr;width:100%;max-width:960px;min-height:600px;background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden;box-shadow:0 40px 100px rgba(0,0,0,.65)}
+.auth-brand{padding:40px;display:flex;flex-direction:column;justify-content:space-between;gap:30px;background:#0a0c0f radial-gradient(#1a1f28 1px,transparent 1px) 0 0/16px 16px;border-right:1px solid var(--line)}
+.auth-brand h1{font:700 50px/1 var(--display);letter-spacing:.03em;margin:20px 0 10px}
+.auth-brand p{color:var(--muted);max-width:32ch;margin:0;font-size:14px}
+.dl{border:1px solid var(--line);border-radius:4px;background:#0d0f12}
+.dl div{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--line)}
+.dl div:last-child{border:0}
+.dl i{width:9px;height:9px;border-radius:2px;background:var(--c)}
+.dl b{font:600 16px var(--display);letter-spacing:.08em;width:48px}
+.dl span{color:var(--muted)}
+.auth-form{padding:42px 38px;display:flex;flex-direction:column;justify-content:center}
+.auth-h{margin:0 0 4px;font:700 32px var(--display);letter-spacing:.02em}
+.tabs2{border-radius:4px}.tabs2 button{border-radius:3px}
+@media(max-width:820px){.auth-wrap{grid-template-columns:1fr}.auth-brand{display:none}}
+.dept-head h1{font-size:28px}
+.dcard{border-radius:6px;background:#10131a}
+.dcard .code{border-radius:3px;font-size:17px}
+#app{grid-template-columns:68px 1fr;grid-template-rows:58px 1fr 28px}
+.topbar{background:#0a0c0f;border-bottom:1px solid #232834}
+.title{font-size:22px;font-weight:600;letter-spacing:.08em}
+.dbadge{border-radius:2px;box-shadow:none;width:4px;height:22px}
+.statusbar{gap:0;border:1px solid #262c37;border-radius:5px;overflow:hidden;background:var(--panel);width:max-content;max-width:100%}
+.st{border:0;border-right:1px solid #262c37;border-radius:0;height:36px;padding:0 15px;color:var(--text);display:flex;align-items:center;gap:8px;font-weight:500;background:transparent}
+.st:last-child{border-right:0}
+.st::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--sc);flex:none}
+.st:hover{background:#1a1e27}
+.st.on{background:color-mix(in srgb,var(--sc) 20%,var(--panel));box-shadow:inset 0 -2px 0 var(--sc);color:#fff;font-weight:600}
+.panic-btn{border-radius:5px;height:36px;background:#2a1215;border:1px solid #7f1d1d;color:#fecaca}
+.panic-btn.live{background:var(--red);color:#fff}
+.csign{padding:0;gap:0;border-radius:5px;overflow:hidden;height:36px;background:var(--panel);border:1px solid #2c3340}
+.csign svg{box-sizing:content-box;width:16px;height:16px;padding:10px;background:var(--ac)}
+.csign b{padding:0 8px 0 14px;font-size:17px}
+.csign i{padding-right:14px;font-weight:500}
+.side{justify-content:flex-start;gap:4px;padding-top:12px;background:#0a0c0f;border-right:1px solid #232834}
+.nav{width:56px;height:58px;flex-direction:column;gap:4px;border-radius:6px;font-size:11px;font-weight:500}
+.nav span{line-height:1}
+.nav.on{background:#161a22;color:#fff}
+.nav.on svg{color:var(--ac)}
+.nav.on::before{left:-6px;top:10px;bottom:10px}
+.panel{border-radius:6px;padding:0;background:var(--panel);border-color:#232834;overflow:hidden}
+.panel>.panel-h{margin:0;padding:11px 14px;border-bottom:1px solid #232834;background:#12151b}
+.panel>.ptabs,.panel>.tbody,.panel>.formgrid,.panel>#formErr{margin-left:12px;margin-right:12px}
+.panel>.ptabs{margin-top:12px}
+.panel>.tbody{padding-bottom:10px}
+.panel>.formgrid{margin-top:14px}
+.panel-h h3{font-size:18px;font-weight:600;letter-spacing:.06em}
+.ptabs{border-radius:4px;background:#0f1217}
+.ptabs button{border-radius:3px;font-weight:500}
+.cnt{border-radius:3px;font-family:var(--mono);font-size:11px}
+.thead{font-size:11.5px;color:#7a8394;font-weight:500;background:var(--panel);padding:6px 10px}
+.row{background:#181c24;border:1px solid #232834;border-left:3px solid #3a4152;border-radius:3px;margin-top:3px;padding:8px 10px;font-size:12.5px}
+.row:hover{background:#1c212a;border-color:#2f3644}
+.call-row.c1{border-left-color:#3b82f6}.call-row.c2{border-left-color:#f59e0b}.call-row.c3{border-left-color:#ef4444}
+.pill{font-family:var(--mono);font-size:11.5px;border-radius:3px;background:#0d0f12;border-color:#2a303c;letter-spacing:.02em}
+.uchip{border-radius:3px;background:#0f1217;border:1px solid #2c3340;border-left:3px solid var(--ac);padding:1px 8px 1px 6px}
+.uchip b{font-size:13px}
+.uchip svg{width:12px;height:12px}
+.empty{justify-content:center;border:1px solid #232834;border-style:solid;background:#12151b;border-radius:3px;padding:22px}
+.foot{background:#0a0c0f;font-family:var(--mono);font-size:11px;border-top:1px solid #232834}
+.toast{border-left-width:3px}
+.modal{background:#12151b}
+#primaryZone{border-radius:4px;border-color:#3a4152;background:#0f1217}
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="s-auth" class="screen hidden">
+  <div class="auth-wrap">
+    <aside class="auth-brand">
+      <div><svg width="52" height="52" viewBox="0 0 48 48" fill="none" stroke="#e6e9ef" stroke-width="2" stroke-linejoin="round"><path d="M24 3l17 6v13c0 11-7.5 19-17 23C14.5 41 7 33 7 22V9l17-6z"/><path d="M24 11l3.2 6.6 7.2 1-5.2 5.100 1.200 7.200L24 27.400l-6.400 3.500 1.200-7.200-5.200-5.100 7.200-1z" fill="#e6e9ef" stroke="none"/></svg><h1>WGVRP CAD</h1><p>Computer-aided dispatch for WGVRP police, fire, dispatch and transportation units.</p></div>
+      <div class="dl"><div style="--c:#3b82f6"><i></i><b>OCSO</b><span>Police</span></div><div style="--c:#ef4444"><i></i><b>GVFD</b><span>Fire / EMS</span></div><div style="--c:#8b5cf6"><i></i><b>OCC</b><span>Dispatch</span></div><div style="--c:#f59e0b"><i></i><b>DOT</b><span>Dept. of Transportation</span></div></div>
+    </aside>
+    <section class="auth-form">
+      <h2 class="auth-h">Welcome back</h2>
+      <div class="sub" style="text-align:left;margin:0 0 20px">Sign in with your approved account.</div>
+      <div class="tabs2"><button id="tabLogin" class="on" data-act="authTab" data-k="login">Sign In</button><button id="tabReg" data-act="authTab" data-k="reg">Request Account</button></div>
+      <div id="authErr" class="err hidden"></div><div id="authOk" class="ok-box hidden"></div>
+      <form id="fLogin" onsubmit="return false">
+        <label class="f"><span>Email</span><input class="inp" id="lEmail" type="text" autocomplete="username"></label>
+        <label class="f"><span>Password</span><input class="inp" id="lPass" type="password" autocomplete="current-password"></label>
+        <button class="btn pri block" data-act="login" type="button">Sign In</button>
+      </form>
+      <form id="fReg" class="hidden" onsubmit="return false">
+        <div class="formgrid">
+          <label class="full"><span>Email</span><input class="inp" id="rEmail" type="email" autocomplete="off"></label>
+          <label><span>Discord username</span><input class="inp" id="rDiscord" type="text" autocomplete="off"></label>
+          <label><span>Discord ID</span><input class="inp" id="rDiscordId" type="text" inputmode="numeric" autocomplete="off"></label>
+          <label><span>Roblox username</span><input class="inp" id="rRoblox" type="text" autocomplete="off"></label>
+          <label><span>Password</span><input class="inp" id="rPass" type="password" autocomplete="new-password"></label>
+        </div>
+        <button class="btn pri block" style="margin-top:14px" data-act="register" type="button">Request account</button>
+      </form>
+    </section>
+  </div>
+</div>
+
+<!-- DEPARTMENT SELECT -->
+<div id="s-dept" class="screen hidden"><div class="card wide" id="deptCard"></div></div>
+
+<!-- ADMIN -->
+<div id="s-admin" class="screen hidden" style="align-items:flex-start"><div class="card wide" style="max-width:1000px" id="adminCard"></div></div>
+
+<!-- APP -->
+<div id="app" class="hidden">
+  <header class="topbar">
+    <div class="statusbar" id="statusBar"></div>
+    <div class="title"><span class="dbadge"></span>WGVRP CAD <small id="deptLabel"></small></div>
+    <div class="tright">
+      <button class="panic-btn" id="panicBtn" data-act="panic"></button>
+      <button class="csign" id="csign" data-act="menu"></button>
+      <div class="umenu hidden" id="umenu"></div>
+    </div>
+  </header>
+  <nav class="side">
+    <button class="nav on" data-act="nav" data-k="home" title="Home"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/></svg><span>Home</span></button>
+    <button class="nav" data-act="nav" data-k="units" title="Units"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7.5" r="3.2"/><circle cx="4.800" cy="10.500" r="2.200"/><circle cx="19.200" cy="10.500" r="2.200"/><path d="M6.500 20.500v-2a5.500 5.500 0 0111 0v2z"/><path d="M1.500 18.500v-1a3.200 3.200 0 013.300-3.200M22.500 18.500v-1a3.200 3.200 0 00-3.300-3.200"/></svg><span>Units</span></button>
+  </nav>
+  <main>
+    <!-- HOME: dispatch layout -->
+    <section class="view" id="v-home-occ">
+      <div class="grid2">
+        <div class="panel" style="overflow:auto">
+          <div class="panel-h"><h3>New Dispatch</h3><div style="display:flex;gap:8px"><button class="btn sm danger" data-act="clearForm">Clear Form</button><button class="btn sm pri" data-act="createCall">Create Call</button></div></div>
+          <div id="formErr" class="err hidden"></div>
+          <div class="formgrid">
+            <label class="full"><span>Primary unit</span>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                <div id="primaryZone">Drag an active unit here</div>
+                <select class="inp" id="fPrimary"><option value="">No unit assigned</option></select>
+              </div>
+            </label>
+            <label class="full"><span>Call title <b class="req">*</b></span><input class="inp" id="fTitle" placeholder="e.g. Animal Bite, Motor Vehicle Accident" autocomplete="off"></label>
+            <label class="full"><span>Address / location <b class="req">*</b></span><input class="inp" id="fAddr" autocomplete="off"></label>
+            <label><span>Call code <b class="req">*</b></span><select class="inp" id="fCode"><option value="" selected disabled>Select code</option><option>Code 1</option><option>Code 2</option><option>Code 3</option></select></label>
+            <label><span>Call type <b class="req">*</b></span><select class="inp" id="fType"><option value="" selected disabled>Select type</option><option>Emergency</option><option>Non-Emergency</option></select></label>
+            <label class="full"><span>Description <b class="req">*</b></span><textarea class="inp" id="fDesc" style="min-height:130px" placeholder="Detailed call notes"></textarea></label>
+          </div>
+        </div>
+        <div class="stack"><div data-panel="units"></div><div data-panel="calls"></div></div>
+      </div>
+    </section>
+    <!-- HOME: unit layout -->
+    <section class="view" id="v-home-unit">
+      <div class="grid2b"><div data-panel="calls" class="stack"></div><div data-panel="units" class="stack"></div></div>
+    </section>
+    <section class="view hidden" id="v-units"><div data-panel="units" class="stack" style="height:100%"></div></section>
+  </main>
+  <footer class="foot"><span id="fstats">WGVRP CAD</span><span id="clock"></span></footer>
+</div>
+
+<div id="modalRoot"></div>
+<div class="toasts" id="toasts"></div>
+
+<script>
+/* =====================  CONFIG  ===================== */
+const ADMIN={email:'WGVRPADMIN@WGVRP.com',pw:'WGVRPDEPARTMENTADMIN'};
+const DEPTS={
+  OCSO:{code:'OCSO2715', label:'Police', c:'#3b82f6', d:'#1d4ed8'},
+  GVFD:{code:'GVFD09201',label:'Fire / EMS', c:'#ef4444', d:'#b91c1c'},
+  OCC: {code:'OCC85920', label:'Dispatch', c:'#8b5cf6', d:'#6d28d9'},
+  DOT: {code:'DOT92481', label:'Dept. of Transportation', c:'#f59e0b', d:'#d97706'}
+};
+const ORDER=['OCSO','GVFD','DOT','OCC'];
+const STATUS=[
+  {k:'available',l:'Available',c:'#10b981'},{k:'unavailable',l:'Unavailable',c:'#ef4444'},{k:'busy',l:'Busy',c:'#f59e0b'},
+  {k:'enroute',l:'Enroute',c:'#3b82f6'},{k:'onscene',l:'On Scene',c:'#8b5cf6'}
+];
+const KEY='wgvrp_cad_v1', PKEY='wgvrp_cad_presence_v1', SKEY='wgvrp_cad_session_v1';
+const SHIELD='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"><path d="M12 2l8 3v6c0 5-3.4 9.4-8 11-4.6-1.6-8-6-8-11V5l8-3z" fill="rgba(255,255,255,.18)"/></svg>';
+const TRI='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3L2 21h20L12 3z"/><path d="M12 10v5M12 18h.01"/></svg>';
+
+/* =====================  HELPERS  ===================== */
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=t=>new Date(t).toLocaleString([], {month:'2-digit',day:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+function ago(t){const s=(Date.now()-t)/1000;if(s<45)return 'just now';const m=Math.round(s/60);if(m<60)return m+(m===1?' min ago':' mins ago');const h=Math.round(m/60);if(h<24)return h+(h===1?' hour ago':' hours ago');const d=Math.round(h/24);return d+(d===1?' day ago':' days ago');}
+function setHTML(el,h){if(el._h!==h){el.innerHTML=h;el._h=h;}}
+const cs=u=>u.callsign||u.roblox;
+const dur=t=>{const m=Math.floor((Date.now()-t)/60000);return m<1?'<1m':m<60?m+'m':Math.floor(m/60)+'h '+(m%60)+'m';};
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+
+/* =====================  STATE (localStorage)  ===================== */
+const blank=()=>({users:[],calls:[],nextNum:1,units:{},events:[],evSeq:0});
+const BAK=KEY+'_bak';
+function readLS(k){try{const r=localStorage.getItem(k);return r?JSON.parse(r):null;}catch(e){return null;}}
+function load(){
+  const r=readLS(KEY)||readLS(BAK),o=Object.assign(blank(),r||{});
+  o.users.forEach(u=>{u.status=u.status||'approved';u.discord=u.discord||'';u.discordId=u.discordId||'';u.profiles=u.profiles||{};
+    (u.depts||[]).forEach(d=>{if(!u.profiles[d])u.profiles[d]={rank:u.rank||'Unassigned',callsign:u.roblox};});});
+  return o;
+}
+function idb(cb){try{const r=indexedDB.open('wgvrp_cad',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>cb(r.result);}catch(e){}}
+function idbPut(j){idb(d=>{try{d.transaction('kv','readwrite').objectStore('kv').put(j,'state');}catch(e){}});}
+function idbRecover(){
+  if(readLS(KEY)||readLS(BAK)){idbPut(JSON.stringify(S));return;}
+  idb(d=>{try{const q=d.transaction('kv').objectStore('kv').get('state');q.onsuccess=()=>{if(q.result){try{localStorage.setItem(KEY,q.result);localStorage.setItem(BAK,q.result);S=load();boot();}catch(e){}}};}catch(e){}});
+}
+function writeAll(){const j=JSON.stringify(S);try{localStorage.setItem(KEY,j);localStorage.setItem(BAK,j);}catch(e){}idbPut(j);}
+try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();}catch(e){}
+function loadP(){try{return JSON.parse(localStorage.getItem(PKEY)||'{}');}catch(e){return {};}}
+let S=load(), P=loadP();
+function save(){writeAll();renderAll();}
+function saveQuiet(){writeAll();}
+let sess=null; // {email, admin, dept}
+function saveSess(){try{sessionStorage.setItem(SKEY,JSON.stringify(sess));}catch(e){}}
+function loadSess(){try{return JSON.parse(sessionStorage.getItem(SKEY)||'null');}catch(e){return null;}}
+const me=()=>sess&&!sess.admin?S.users.find(u=>u.email===sess.email):null;
+const myUnit=()=>sess&&S.units[sess.email];
+const isOCC=()=>sess&&sess.dept==='OCC';
+const isLive=u=>u&&u.on&&(Date.now()-(P[u.email]||0)<20000);
+let screen='auth', ui={view:'home',tab:'active',q:{calls:'',units:''},drag:false};
+let lastEv=0, flash={};
+
+/* =====================  AUDIO  ===================== */
+let AC=null;
+function ac(){try{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();}catch(e){}return AC;}
+['pointerdown','keydown','click'].forEach(ev=>document.addEventListener(ev,ac,{passive:true}));
+function tone(f,start,dur,type,vol){const a=ac();if(!a)return;const t=a.currentTime+start;const o=a.createOscillator(),g=a.createGain();o.type=type;o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+.02);g.gain.setValueAtTime(vol,t+dur-.06);g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+dur+.05);}
+function beep(){tone(1000,0,1.5,'square',.32);tone(1004,0,1.5,'sine',.3);}            // single long BEEEEP
+function siren(){for(let i=0;i<4;i++){const t=i*1.25;tone(1800,t,.36,'sawtooth',.42);tone(1150,t+.41,.36,'sawtooth',.42);tone(2300,t+.82,.36,'sawtooth',.42);}} // harsh 3-tone x4
+
+/* =====================  TOAST / MODAL  ===================== */
+function toast(msg,bad){const t=document.createElement('div');t.className='toast'+(bad?' bad':'');t.textContent=msg;$('#toasts').appendChild(t);setTimeout(()=>t.remove(),4500);}
+function openModal(h,sm){$('#modalRoot').innerHTML=`<div class="ov" data-act="ovClose"><div class="modal ${sm?'sm':''}">${h}</div></div>`;}
+function closeModal(){$('#modalRoot').innerHTML='';ui.modalCall=null;}
+function confirmBox(msg,okLabel,onOk){
+  openModal(`<h2>Please confirm</h2><p style="margin:10px 0 18px;color:var(--text)">${esc(msg)}</p><div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn" data-act="modalClose">Cancel</button><button class="btn danger" id="cfOk">${esc(okLabel)}</button></div>`,true);
+  $('#cfOk').onclick=()=>{closeModal();onOk();};
+}
+
+/* =====================  SCREENS  ===================== */
+function show(s){screen=s;['auth','dept','admin'].forEach(n=>$('#s-'+n).classList.toggle('hidden',n!==s));$('#app').classList.toggle('hidden',s!=='app');}
+function boot(){
+  sess=loadSess();
+  if(sess&&sess.admin){show('admin');renderAdmin();return;}
+  if(sess&&me()){ if(sess.dept&&me().depts.includes(sess.dept)){enterApp(sess.dept);} else {sess.dept=null;saveSess();renderDept();show('dept');} return; }
+  sess=null;show('auth');
+}
+function authErr(m){const e=$('#authErr');e.textContent=m;e.classList.toggle('hidden',!m);if(m)$('#authOk').classList.add('hidden');else $('#authOk').classList.add('hidden');}
+function authOk(m){const e=$('#authOk');e.textContent=m;e.classList.remove('hidden');$('#authErr').classList.add('hidden');}
+function doLogin(){
+  const email=$('#lEmail').value.trim(),pw=$('#lPass').value;
+  if(!email||!pw)return authErr('Enter your email and password.');
+  if(email.toLowerCase()===ADMIN.email.toLowerCase()&&pw===ADMIN.pw){sess={admin:true,email:ADMIN.email};saveSess();authErr('');renderAdmin();show('admin');return;}
+  S=load();
+  const u=S.users.find(x=>x.email.toLowerCase()===email.toLowerCase()&&x.password===pw);
+  if(!u)return authErr('Email or password is incorrect.');
+  if(u.status==='pending')return authErr('Your request is with the administration team. Approval can take up to 24hrs. Please be patient and avoid asking for it to be accepted.');
+  if(u.status==='denied')return authErr('Your account request was not approved.');
+  sess={email:u.email,dept:null};saveSess();authErr('');$('#lPass').value='';renderDept();show('dept');
+}
+function doRegister(){
+  const g=i=>$(i).value.trim(),email=g('#rEmail'),dc=g('#rDiscord'),did=g('#rDiscordId'),rb=g('#rRoblox'),pw=$('#rPass').value;
+  if(!email||!dc||!did||!rb||!pw)return authErr('Email, Discord username, Discord ID, Roblox username, and password are all required.');
+  if(!/^\S+@\S+\.\S+$/.test(email))return authErr('Enter a valid email address.');
+  if(!/^\d{15,22}$/.test(did))return authErr('Discord ID must be the numeric ID (15-22 digits).');
+  if(pw.length<6)return authErr('Password must be at least 6 characters.');
+  S=load();
+  if(email.toLowerCase()===ADMIN.email.toLowerCase()||S.users.some(u=>u.email.toLowerCase()===email.toLowerCase()))return authErr('An account with that email already exists.');
+  S.users.push({email,password:pw,discord:dc,discordId:did,roblox:rb,status:'pending',created:Date.now(),depts:[],profiles:{}});
+  writeAll();
+  ['#rEmail','#rDiscord','#rDiscordId','#rRoblox','#rPass'].forEach(i=>$(i).value='');
+  $('#tabLogin').click();
+  authOk('Your request has been sent to the administration team. Approval can take up to 24hrs. Please be patient and avoid asking for it to be accepted.');
+}
+function logout(){
+  if(sess&&!sess.admin){S=load();const u=S.units[sess.email];if(u){u.on=false;u.panic=false;saveQuiet();}}
+  sess=null;try{sessionStorage.removeItem(SKEY);}catch(e){}
+  closeModal();show('auth');
+}
+
+/* ----- department select ----- */
+function renderDept(msg){
+  const u=me();if(!u)return;
+  const cards=u.depts.map(d=>`<div class="dcard" style="--ac:${DEPTS[d].c}" data-act="enter" data-k="${d}"><button class="btn sm danger rm" data-act="rmDept" data-k="${d}">Remove</button><div class="code">${d}</div><div style="font-weight:600">${esc(DEPTS[d].label)}</div><div style="color:var(--muted)">${esc((u.profiles[d]||{}).callsign||'No callsign')} &middot; ${esc((u.profiles[d]||{}).rank||'Set up profile')}</div></div>`).join('');
+  $('#deptCard').innerHTML=`<div class="dept-head"><div class="logo" style="margin:0"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"><path d="M12 2l8 3v6c0 5-3.4 9.4-8 11-4.6-1.6-8-6-8-11V5l8-3z"/></svg></div><div><h1>Select department</h1><div style="color:var(--muted)">${esc(u.roblox)} &middot; Discord ${esc(u.discord)}</div></div></div>
+  ${msg?`<div class="err">${esc(msg)}</div>`:''}
+  <div class="dept-grid">${cards}
+    <div class="dcard add" id="addCard"><div style="font:700 17px var(--display)">+ Add department</div><div style="color:var(--muted);margin-bottom:10px">Enter an access code</div>
+      <div style="display:flex;gap:6px"><input class="inp" id="dCode" placeholder="Access code" autocomplete="off"><button class="btn pri" data-act="addDept">Add</button></div></div>
+  </div>
+  <div class="row-end"><span style="color:var(--muted)">This page appears after every login.</span><button class="btn" data-act="logout">Sign Out</button></div>`;
+  const ci=$('#dCode');if(ci){ci.addEventListener('click',e=>e.stopPropagation());ci.addEventListener('keydown',e=>{if(e.key==='Enter')addDept();});}
+}
+function addDept(){
+  const code=$('#dCode').value.trim();
+  const k=ORDER.find(d=>DEPTS[d].code===code);
+  if(!k)return renderDept('That access code is not valid.');
+  S=load();const u=S.users.find(x=>x.email===sess.email);
+  if(u.depts.includes(k)&&u.profiles[k])return renderDept('You already have access to '+k+'.');
+  renderProfile(k);
+}
+function renderProfile(k){
+  const p=(me().profiles||{})[k]||{};
+  $('#deptCard').innerHTML=`<div class="dept-head"><div class="dcard" style="--ac:${DEPTS[k].c};cursor:default;padding:8px 14px"><div class="code" style="margin:0">${k}</div></div><div><h1>Set up your ${esc(DEPTS[k].label)} profile</h1><div style="color:var(--muted)">Enter your rank and callsign to open the dashboard.</div></div></div>
+  <div id="pfErr" class="err hidden"></div>
+  <div class="formgrid"><label><span>Rank</span><input class="inp" id="pRank" value="${esc(p.rank||'')}" autocomplete="off"></label><label><span>Callsign</span><input class="inp" id="pCall" value="${esc(p.callsign||'')}" autocomplete="off"></label></div>
+  <div class="row-end"><button class="btn" data-act="backDept">Back</button><button class="btn pri" data-act="saveProfile" data-k="${k}">Save and open dashboard</button></div>`;
+  show('dept');
+}
+function saveProfile(k){
+  const rank=$('#pRank').value.trim(),call=$('#pCall').value.trim();
+  if(!rank||!call){const e=$('#pfErr');e.textContent='Enter both a rank and a callsign.';e.classList.remove('hidden');return;}
+  S=load();const u=S.users.find(x=>x.email===sess.email);
+  if(!u.depts.includes(k))u.depts.push(k);
+  u.profiles[k]={rank,callsign:call};writeAll();enterApp(k);
+}
+function openSettings(){
+  const u=me(),p=u.profiles[sess.dept]||{};
+  openModal(`<div class="mh"><div><h2>Settings</h2><div style="color:var(--muted)">${esc(u.email)}</div></div><button class="btn sm" data-act="modalClose">Close window</button></div>
+  <h4 class="sec2">${sess.dept} profile</h4>
+  <div class="formgrid"><label><span>Rank</span><input class="inp" id="sRank" value="${esc(p.rank||'')}"></label><label><span>Callsign</span><input class="inp" id="sCall" value="${esc(p.callsign||'')}"></label></div>
+  <div class="row-end" style="margin-top:10px"><span></span><button class="btn pri" data-act="saveProf">Save profile</button></div>
+  <h4 class="sec2">Change password</h4>
+  <div class="formgrid"><label class="full"><span>Current password</span><input class="inp" id="sOld" type="password"></label><label><span>New password</span><input class="inp" id="sNew" type="password"></label><label><span>Confirm new password</span><input class="inp" id="sNew2" type="password"></label></div>
+  <div class="row-end" style="margin-top:10px"><span id="sMsg"></span><button class="btn pri" data-act="savePass">Update password</button></div>`);
+}
+function saveProf(){
+  const rank=$('#sRank').value.trim(),call=$('#sCall').value.trim();
+  if(!rank||!call)return toast('Enter both a rank and a callsign.',true);
+  S=load();const u=S.users.find(x=>x.email===sess.email);u.profiles[sess.dept]={rank,callsign:call};
+  const un=S.units[u.email];if(un){un.rank=rank;un.callsign=call;}
+  save();toast('Profile updated');
+}
+function savePass(){
+  const o=$('#sOld').value,n=$('#sNew').value,n2=$('#sNew2').value,m=$('#sMsg');
+  const bad=t=>{m.textContent=t;m.style.color='#fca5a5';};
+  S=load();const u=S.users.find(x=>x.email===sess.email);
+  if(u.password!==o)return bad('Current password is incorrect.');
+  if(n.length<6)return bad('New password must be at least 6 characters.');
+  if(n!==n2)return bad('New passwords do not match.');
+  if(n===o)return bad('New password must differ from the current one.');
+  u.password=n;writeAll();['#sOld','#sNew','#sNew2'].forEach(i=>$(i).value='');m.textContent='Password updated.';m.style.color='#6ee7b7';
+}
+function rmDept(k){S=load();const u=S.users.find(x=>x.email===sess.email);u.depts=u.depts.filter(d=>d!==k);saveQuiet();renderDept();}
+
+/* ----- admin ----- */
+function renderAdmin(){
+  const pend=S.users.filter(u=>u.status==='pending'),acct=S.users.filter(u=>u.status!=='pending');
+  const prof=u=>ORDER.filter(d=>u.profiles[d]).map(d=>`<b style="color:${DEPTS[d].c}">${d}</b> ${esc(u.profiles[d].rank)} / ${esc(u.profiles[d].callsign)}`).join('<br>')||'—';
+  const pr=pend.map(u=>`<tr><td>${esc(u.email)}</td><td>${esc(u.discord)}</td><td>${esc(u.discordId)}</td><td>${esc(u.roblox)}</td><td>${fmt(u.created||Date.now())}</td><td style="white-space:nowrap"><button class="btn sm pri" data-act="approve" data-k="${esc(u.email)}">Approve</button> <button class="btn sm danger" data-act="deny" data-k="${esc(u.email)}">Deny</button></td></tr>`).join('');
+  const ar=acct.map(u=>`<tr><td>${esc(u.email)}</td><td class="pw">${esc(u.password)}</td><td>${esc(u.discord)}<br><span style="color:var(--muted)">${esc(u.discordId)}</span></td><td>${esc(u.roblox)}</td><td>${u.status==='denied'?'<span style="color:#fca5a5">Denied</span>':'<span class="ok">Approved</span>'}</td><td>${prof(u)}</td><td style="white-space:nowrap">${u.status==='denied'?`<button class="btn sm" data-act="approve" data-k="${esc(u.email)}">Approve</button> `:''}<button class="btn sm danger" data-act="delUser" data-k="${esc(u.email)}">Delete</button></td></tr>`).join('');
+  $('#adminCard').innerHTML=`<div class="dept-head"><div class="logo" style="margin:0;background:linear-gradient(135deg,#8b5cf6,#3b82f6)"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"><path d="M12 2l8 3v6c0 5-3.4 9.4-8 11-4.6-1.6-8-6-8-11V5l8-3z"/></svg></div><div><h1>Admin dashboard</h1><div style="color:var(--muted)">${pend.length} pending request${pend.length===1?'':'s'} &middot; ${acct.length} account${acct.length===1?'':'s'}</div></div></div>
+  <h4 class="sec2">Pending requests</h4>
+  <div class="scroll-x"><table class="tbl"><thead><tr><th>Email</th><th>Discord</th><th>Discord ID</th><th>Roblox</th><th>Requested</th><th></th></tr></thead><tbody>${pr||'<tr><td colspan="6" style="color:var(--muted)">No pending requests.</td></tr>'}</tbody></table></div>
+  <h4 class="sec2">Accounts</h4>
+  <div class="scroll-x"><table class="tbl"><thead><tr><th>Email</th><th>Password</th><th>Discord / ID</th><th>Roblox</th><th>Status</th><th>Department rank / callsign</th><th></th></tr></thead><tbody>${ar||'<tr><td colspan="7" style="color:var(--muted)">No accounts yet.</td></tr>'}</tbody></table></div>
+  <div class="row-end"><button class="btn" data-act="backup">Backup &amp; restore</button><button class="btn" data-act="logout">Sign Out</button></div>`;
+}
+
+/* =====================  APP  ===================== */
+function enterApp(d){
+  S=load();const u=me(),pr=u.profiles[d];
+  if(!pr){renderProfile(d);return;}
+  sess.dept=d;saveSess();
+  S.units[u.email]={email:u.email,roblox:u.roblox,callsign:pr.callsign,rank:pr.rank,dept:d,status:'available',panic:false,on:true,since:Date.now()};
+  saveQuiet();heartbeat();
+  lastEv=S.evSeq; ui.view='home'; ui.tab=d==='OCC'?'pending':'active';
+  const D=DEPTS[d];const app=$('#app');app.style.setProperty('--ac',D.c);app.style.setProperty('--ad',D.d);
+  $('#v-home-occ').classList.toggle('hidden',d!=='OCC');
+  $('#v-home-unit').classList.toggle('hidden',d==='OCC');
+  $('#panicBtn').classList.toggle('hidden',d==='OCC');
+  $('#deptLabel').textContent=D.label;
+  closeModal();show('app');renderAll();
+}
+function heartbeat(){if(!sess||sess.admin||!sess.dept)return;P=loadP();P[sess.email]=Date.now();try{localStorage.setItem(PKEY,JSON.stringify(P));}catch(e){}}
+setInterval(()=>{heartbeat();if(screen==='app')renderApp();},5000);
+setInterval(()=>{const c=$('#clock');if(c)c.textContent=new Date().toLocaleString([], {dateStyle:'medium',timeStyle:'medium'});},1000);
+
+function chip(email){const u=S.units[email];if(!u||!DEPTS[u.dept])return '<span class="uchip"><i>Removed unit</i></span>';return `<span class="uchip" style="--ac:${DEPTS[u.dept].c}">${SHIELD}<b>${u.dept}</b><i>${esc(cs(u))}</i></span>`;}
+function chipX(email,callId){return chip(email).replace('</span>',`<button class="x" data-act="unassign" data-k="${callId}" data-e="${esc(email)}" title="Remove unit">&times;</button></span>`);}
+const stObj=k=>STATUS.find(s=>s.k===k)||STATUS[1];
+const statusLabel=c=>c.status==='pending'?'Pending':c.status==='active'?'Open':'Closed';
+
+/* ---- events (alerts) ---- */
+function pushEvent(e){S.evSeq++;S.events.push(Object.assign({id:S.evSeq,ts:Date.now()},e));S.events=S.events.slice(-60);}
+function processEvents(){
+  if(!sess||sess.admin||!sess.dept)return;
+  for(const e of S.events){
+    if(e.id<=lastEv)continue;lastEv=e.id;
+    if(Date.now()-e.ts>15000)continue;
+    if(e.type==='assign'&&e.email===sess.email){
+      beep();flash[e.callId]={start:Date.now(),dept:sess.dept};
+      toast(`You were assigned to Call #${e.num} — ${e.title}`);
+      setTimeout(renderAll,5100);
+    }
+    if(e.type==='panic'){siren();toast(`PANIC — ${e.name} (${e.dept})`,true);}
+  }
+}
+
+/* ---- render ---- */
+function renderAll(){
+  processEvents();
+  if(screen==='app')renderApp();
+  else if(screen==='admin')renderAdmin();
+}
+function visibleCalls(){
+  if(isOCC())return S.calls;
+  return S.calls.filter(c=>c.units.includes(sess.email)&&c.status!=='pending');
+}
+function renderApp(){
+  if(ui.drag)return;
+  const u=myUnit();if(!u||!me())return;
+  const D=DEPTS[sess.dept];
+  // top bar
+  const list=isOCC()?STATUS.slice(0,3):STATUS;
+  setHTML($('#statusBar'),list.map(s=>`<button class="st ${u.status===s.k?'on':''}" style="--sc:${s.c}" data-act="status" data-k="${s.k}">${s.l}</button>`).join(''));
+  setHTML($('#csign'),`${SHIELD}<b>${sess.dept}</b><i>${esc(cs(u))}</i>`);
+  setHTML($('#panicBtn'),`${TRI.replace('width="18" height="18"','width="16" height="16"').replace(/#fff/g,'currentColor')}<span>${u.panic?'CLEAR PANIC':'PANIC'}</span>`);
+  $('#panicBtn').classList.toggle('live',!!u.panic);
+  setHTML($('#umenu'),`<div class="who">${esc(me().email)}<br>${esc(u.rank)} &middot; ${esc(cs(u))}</div><button data-act="settings">Settings</button><button data-act="switchDept">Switch department</button><button data-act="logout">Sign out</button>`);
+  // nav
+  $$('.nav').forEach(b=>b.classList.toggle('on',b.dataset.k===ui.view));
+  const homeId=isOCC()?'v-home-occ':'v-home-unit';
+  $('#'+homeId).classList.toggle('hidden',ui.view!=='home');
+  if(isOCC())$('#v-home-unit').classList.add('hidden');else $('#v-home-occ').classList.add('hidden');
+  $('#v-units').classList.toggle('hidden',ui.view!=='units');
+  // panels
+  if(!isOCC()&&ui.tab==='pending')ui.tab='active';
+  $$('[data-panel="calls"]').forEach(renderCalls);
+  $$('[data-panel="units"]').forEach(renderUnits);
+  if(isOCC())renderPrimary();
+  const lv=Object.values(S.units).filter(isLive);
+  $('#fstats').textContent='WGVRP CAD  |  '+lv.length+' units online  |  '+lv.filter(x=>x.status==='available').length+' available'+(isOCC()?'  |  '+S.calls.filter(c=>c.status==='pending').length+' pending':'')+'  |  '+S.calls.filter(c=>c.status==='active').length+' active calls';
+}
+function shell(el,type){
+  if(el._shell)return;el._shell=1;el.classList.add('panel');
+  el.innerHTML=type==='calls'
+   ?`<div class="panel-h"><h3>Calls</h3><input class="search" data-search="calls" placeholder="Search"></div><div class="ptabs" data-tabs></div><div class="tbody" data-body></div>`
+   :`<div class="panel-h"><h3>Active Units</h3><input class="search" data-search="units" placeholder="Search"></div><div class="tbody" data-body></div>`;
+}
+function renderCalls(el){
+  shell(el,'calls');
+  const all=visibleCalls();
+  const q=ui.q.calls.toLowerCase();
+  const cnt=k=>all.filter(c=>c.status===k).length;
+  const tabs=isOCC()?['pending','active','closed']:['active','closed'];
+  const tl={pending:'Pending',active:'Active',closed:'Closed'};
+  setHTML($('[data-tabs]',el),tabs.map(k=>`<button class="${ui.tab===k?'on':''}" data-act="tab" data-k="${k}">${tl[k]} <span class="cnt">${cnt(k)}</span></button>`).join(''));
+  let rows=all.filter(c=>c.status===ui.tab);
+  if(q)rows=rows.filter(c=>(`#${c.num} ${c.num} ${c.title} ${c.address} ${c.desc} ${c.code} ${c.type}`).toLowerCase().includes(q));
+  const head=`<div class="thead calls-cols"><span>Call #</span><span>Status</span><span>Title</span><span>Location</span><span>Code</span><span>Type</span><span>Created</span><span>Units</span></div>`;
+  const body=rows.length?rows.map(c=>{
+    let fl='',st='';
+    const f=flash[c.id];
+    if(f&&c.units.includes(sess.email)&&Date.now()-f.start<5000){fl=' fl-'+f.dept;st=` style="animation-delay:-${((Date.now()-f.start)/1000).toFixed(2)}s"`;}
+    const drop=isOCC()&&c.status!=='closed'?' droppable':'';
+    return `<div class="row calls-cols call-row c${String(c.code).slice(-1)}${drop}${fl}"${st} data-act="openCall" data-k="${c.id}">
+      <span><span class="pill">CALL #${c.num}</span></span>
+      <span class="stp s-${c.status==='active'?'open':c.status}">${statusLabel(c)}</span>
+      <span>${esc(c.title)}</span><span>${esc(c.address)}</span><span>${esc(c.code)}</span>
+      <span class="${c.type==='Emergency'?'t-emerg':'t-non'}">${esc(c.type)}</span>
+      <span title="${fmt(c.created)}">${ago(c.created)}</span>
+      <span>${c.units.length?c.units.map(chip).join(''):'<span style="color:var(--muted)">0 unit(s)</span>'}</span></div>`;
+  }).join(''):`<div class="empty">No ${tl[ui.tab].toLowerCase()} calls to display</div>`;
+  setHTML($('[data-body]',el),head+body);
+}
+function renderUnits(el){
+  shell(el,'units');
+  const q=ui.q.units.toLowerCase();
+  let list=Object.values(S.units).filter(isLive);
+  if(q)list=list.filter(u=>(cs(u)+' '+u.roblox+' '+u.dept+' '+u.rank+' '+u.status).toLowerCase().includes(q));
+  list.sort((a,b)=>(b.panic?1:0)-(a.panic?1:0)||ORDER.indexOf(a.dept)-ORDER.indexOf(b.dept)||cs(a).localeCompare(cs(b)));
+  const head=`<div class="thead units-cols"><span>Unit</span><span>Agency</span><span>Rank</span><span>Status</span><span>Call</span><span></span></div>`;
+  const occ=isOCC();
+  const body=list.length?list.map(u=>{
+    const s=stObj(u.status);
+    const call=S.calls.find(c=>c.status==='active'&&c.units.includes(u.email));
+    const drag=occ&&u.dept!=='OCC';
+    return `<div class="row units-cols unit-row${u.panic?' panic':''}" style="border-left-color:${s.c}" data-email="${esc(u.email)}" ${drag?'draggable="true"':''}>
+      <span>${u.panic?`<span class="pbadge"><span class="c">${TRI}</span><span>PANIC</span></span>`:''}${chip(u.email)}</span>
+      <span style="color:${DEPTS[u.dept].c};font-weight:600">${u.dept}</span>
+      <span>${esc(u.rank)}</span>
+      <span style="color:${s.c};font-weight:600">${s.l}<small style="color:var(--muted);font-weight:400"> ${u.since?dur(u.since):''}</small></span>
+      <span>${call?'#'+call.num:'—'}</span>
+      <span>${occ&&u.panic?`<button class="btn sm danger" data-act="clearPanic" data-k="${esc(u.email)}">Clear</button>`:''}</span></div>`;
+  }).join(''):`<div class="empty">No active units</div>`;
+  setHTML($('[data-body]',el),head+body+(occ?'<div style="color:var(--muted);margin-top:10px;font-size:12px">Drag a unit onto a call to assign it.</div>':''));
+}
+function renderPrimary(){
+  const live=Object.values(S.units).filter(u=>isLive(u)&&u.dept!=='OCC');
+  const sel=$('#fPrimary');const cur=sel.value;
+  const opts='<option value="">No unit assigned</option>'+live.map(u=>`<option value="${esc(u.email)}">${u.dept} — ${esc(cs(u))}</option>`).join('');
+  if(sel._h!==opts){sel.innerHTML=opts;sel._h=opts;}
+  sel.value=live.some(u=>u.email===cur)?cur:'';
+  setHTML($('#primaryZone'),sel.value?chip(sel.value):'Drag an active unit here');
+}
+
+/* =====================  ACTIONS  ===================== */
+function setStatus(k){S=load();const u=S.units[sess.email];if(!u)return;u.status=k;u.since=Date.now();save();}
+function togglePanic(){
+  S=load();const u=S.units[sess.email];if(!u)return;
+  u.panic=!u.panic;
+  if(u.panic)pushEvent({type:'panic',email:u.email,name:cs(u),dept:u.dept});
+  save();
+}
+function assignUnit(c,email,by){
+  const u=S.units[email];
+  if(!u||u.dept==='OCC'||c.status==='closed'||c.units.includes(email))return false;
+  c.units.push(email);
+  if(c.status==='pending')c.status='active';
+  c.log.push({by:by||dispName(),t:Date.now(),text:`Units Assigned: ${u.dept} ${cs(u)}`});
+  pushEvent({type:'assign',email,callId:c.id,num:c.num,title:c.title});
+  return true;
+}
+const dispName=()=>myUnit()?cs(myUnit()):'Dispatch';
+function createCall(){
+  const g=id=>$(id).value.trim();
+  const title=g('#fTitle'),address=g('#fAddr'),code=$('#fCode').value,type=$('#fType').value,desc=g('#fDesc'),prim=$('#fPrimary').value;
+  const miss=[];if(!title)miss.push('call title');if(!address)miss.push('address');if(!code)miss.push('call code');if(!type)miss.push('call type');if(!desc)miss.push('description');
+  const fe=$('#formErr');
+  if(miss.length){fe.textContent='Missing: '+miss.join(', ')+'.';fe.classList.remove('hidden');return;}
+  fe.classList.add('hidden');
+  S=load();
+  const c={id:uid(),num:S.nextNum++,title,address,code,type,desc,status:'pending',created:Date.now(),units:[],log:[{by:dispName(),t:Date.now(),text:'Call Opened'}]};
+  S.calls.unshift(c);
+  if(prim)assignUnit(c,prim);
+  clearForm();
+  ui.tab=c.status==='pending'?'pending':'active';
+  save();toast(`Call #${c.num} created`);
+}
+function clearForm(){['#fTitle','#fAddr','#fDesc'].forEach(i=>$(i).value='');$('#fCode').selectedIndex=0;$('#fType').selectedIndex=0;$('#fPrimary').value='';$('#formErr').classList.add('hidden');renderPrimary();}
+
+/* ---- call detail ---- */
+function openCall(id){
+  S=load();const c=S.calls.find(x=>x.id===id);if(!c)return;
+  ui.modalCall=id;
+  const edit=isOCC()&&c.status!=='closed', dis=edit?'':'disabled';
+  const statusOpts=(c.status==='pending'?'<option value="pending" selected>Pending</option><option value="active">Open</option>':`<option value="active" ${c.status==='active'?'selected':''}>Open</option>`)+`<option value="closed" ${c.status==='closed'?'selected':''}>Close</option>`;
+  const cand=Object.values(S.units).filter(u=>isLive(u)&&u.dept!=='OCC'&&!c.units.includes(u.email));
+  const log=c.log.slice().reverse().map(l=>`<div><span><b>${esc(l.by)}</b> &rarr; ${esc(l.text)}</span><time>${fmt(l.t)}</time></div>`).join('');
+  openModal(`
+   <div class="mh"><div><h2>Call #${c.num} — ${esc(c.title)}</h2><div style="color:var(--muted)">${statusLabel(c)} &middot; opened ${fmt(c.created)}${c.closed?' &middot; closed '+fmt(c.closed):''}</div></div>
+     <div style="display:flex;gap:8px">${edit?'<button class="btn sm pri" data-act="saveCall">Save</button>':''}<button class="btn sm" data-act="modalClose">Close window</button></div></div>
+   <div class="formgrid">
+     <label><span>Status</span><select class="inp" id="mStatus" ${edit?'':'disabled'} data-act-change="status">${statusOpts}</select></label>
+     <label><span>Call type</span><select class="inp" id="mType" ${dis}><option ${c.type==='Emergency'?'selected':''}>Emergency</option><option ${c.type==='Non-Emergency'?'selected':''}>Non-Emergency</option></select></label>
+     <label class="full"><span>Call title</span><input class="inp" id="mTitle" value="${esc(c.title)}" ${dis}></label>
+     <label><span>Address / location</span><input class="inp" id="mAddr" value="${esc(c.address)}" ${dis}></label>
+     <label><span>Call code</span><select class="inp" id="mCode" ${dis}>${['Code 1','Code 2','Code 3'].map(x=>`<option ${c.code===x?'selected':''}>${x}</option>`).join('')}</select></label>
+     <label class="full"><span>Description</span><textarea class="inp" id="mDesc" ${dis}>${esc(c.desc)}</textarea></label>
+   </div>
+   <h4 class="sec">Units</h4>
+   <div>${c.units.length?c.units.map(e=>edit?chipX(e,c.id):chip(e)).join(''):'<span style="color:var(--muted)">No units assigned</span>'}</div>
+   ${edit?`<div style="display:flex;gap:8px;margin-top:8px"><select class="inp" id="mAssign"><option value="">Select an active unit…</option>${cand.map(u=>`<option value="${esc(u.email)}">${u.dept} — ${esc(cs(u))}</option>`).join('')}</select><button class="btn" data-act="assignSel" data-k="${c.id}">Assign</button></div>`:''}
+   <h4 class="sec">Call notes</h4>
+   ${edit?`<div style="display:flex;gap:8px;margin-bottom:8px"><input class="inp" id="mNote" placeholder="Note text" autocomplete="off"><button class="btn" data-act="addNote" data-k="${c.id}">Add note</button></div>`:''}
+   <div class="tl">${log}</div>
+   ${edit?`<div class="row-end"><span></span><button class="btn danger" data-act="closeCall" data-k="${c.id}">Close call</button></div>`:''}
+  `);
+  const ms=$('#mStatus');
+  if(ms&&edit)ms.addEventListener('change',()=>{if(ms.value==='closed'){ms.value=c.status;askClose(c.id);}else if(ms.value==='active'&&c.status==='pending'){applyFields(c);c.status='active';c.log.push({by:dispName(),t:Date.now(),text:'Call Opened (status set to Open)'});save();openCall(c.id);}});
+  const mn=$('#mNote');if(mn)mn.addEventListener('keydown',e=>{if(e.key==='Enter')addNote(c.id);});
+}
+function applyFields(c){
+  if(!$('#mTitle')||$('#mTitle').disabled)return;
+  c.title=$('#mTitle').value.trim()||c.title;c.address=$('#mAddr').value.trim()||c.address;
+  c.code=$('#mCode').value;c.type=$('#mType').value;c.desc=$('#mDesc').value.trim()||c.desc;
+}
+function saveCall(){S=load();const c=S.calls.find(x=>x.id===ui.modalCall);if(!c)return;applyFields(c);c.log.push({by:dispName(),t:Date.now(),text:'Call Edited'});save();openCall(c.id);toast('Call saved');}
+function addNote(id){
+  S=load();const c=S.calls.find(x=>x.id===id);const t=$('#mNote').value.trim();if(!c||!t)return;
+  applyFields(c);c.log.push({by:dispName(),t:Date.now(),text:t});save();openCall(id);
+}
+function assignSel(id){
+  S=load();const c=S.calls.find(x=>x.id===id);const e=$('#mAssign').value;if(!c||!e)return;
+  applyFields(c);assignUnit(c,e);save();openCall(id);
+}
+function unassign(id,email){
+  S=load();const c=S.calls.find(x=>x.id===id);if(!c)return;applyFields(c);
+  c.units=c.units.filter(e=>e!==email);const u=S.units[email];
+  c.log.push({by:dispName(),t:Date.now(),text:`Unit Removed: ${u?u.dept+' '+cs(u):'unit'}`});save();openCall(id);
+}
+function askClose(id){
+  S=load();const c=S.calls.find(x=>x.id===id);if(c)applyFields(c);saveQuiet();
+  confirmBox('Are you sure you want to close this call? This action cannot be undone.','Close call',()=>{
+    S=load();const c=S.calls.find(x=>x.id===id);if(!c)return;
+    c.status='closed';c.closed=Date.now();c.log.push({by:dispName(),t:Date.now(),text:'Call Closed'});
+    if(ui.tab!=='closed'&&isOCC())ui.tab='closed';
+    save();toast(`Call #${c.num} closed`);
+  });
+}
+
+/* =====================  EVENT WIRING  ===================== */
+document.addEventListener('click',e=>{
+  const um=$('#umenu');if(um&&!e.target.closest('#umenu,#csign'))um.classList.add('hidden');
+  const t=e.target.closest('[data-act]');if(!t)return;
+  const a=t.dataset.act,k=t.dataset.k;
+  if(a==='ovClose'){if(e.target===t)closeModal();return;}
+  if(a==='openCall'){if(e.target.closest('button,select,input'))return;openCall(k);return;}
+  e.stopPropagation&&0;
+  switch(a){
+    case 'authTab':authErr('');$('#fLogin').classList.toggle('hidden',k!=='login');$('#fReg').classList.toggle('hidden',k!=='reg');$('#tabLogin').classList.toggle('on',k==='login');$('#tabReg').classList.toggle('on',k==='reg');break;
+    case 'login':doLogin();break;
+    case 'register':doRegister();break;
+    case 'logout':logout();break;
+    case 'enter':if(e.target.closest('[data-act="rmDept"]'))break;enterApp(k);break;
+    case 'rmDept':e.stopPropagation();rmDept(k);break;
+    case 'addDept':e.stopPropagation();addDept();break;
+    case 'delUser':confirmBox(`Delete the account ${k}? This cannot be undone.`,'Delete account',()=>{S=load();S.users=S.users.filter(u=>u.email!==k);delete S.units[k];writeAll();renderAdmin();toast('Account deleted');});break;
+    case 'status':setStatus(k);break;
+    case 'panic':togglePanic();break;
+    case 'clearPanic':S=load();if(S.units[k])S.units[k].panic=false;save();break;
+    case 'menu':$('#umenu').classList.toggle('hidden');break;
+    case 'switchDept':{S=load();const u=S.units[sess.email];if(u){u.on=false;u.panic=false;saveQuiet();}sess.dept=null;saveSess();renderDept();show('dept');break;}
+    case 'nav':ui.view=k;renderApp();break;
+    case 'tab':ui.tab=k;renderApp();break;
+    case 'createCall':createCall();break;
+    case 'clearForm':clearForm();break;
+    case 'modalClose':closeModal();break;
+    case 'saveCall':saveCall();break;
+    case 'addNote':addNote(k);break;
+    case 'assignSel':assignSel(k);break;
+    case 'unassign':unassign(k,t.dataset.e);break;
+    case 'closeCall':askClose(k);break;
+    case 'settings':$('#umenu').classList.add('hidden');openSettings();break;
+    case 'saveProf':saveProf();break;
+    case 'savePass':savePass();break;
+    case 'saveProfile':saveProfile(k);break;
+    case 'backDept':renderDept();break;
+    case 'approve':case 'deny':{S=load();const u=S.users.find(x=>x.email===k);if(u){u.status=a==='approve'?'approved':'denied';save();toast((a==='approve'?'Approved ':'Denied ')+u.email);}break;}
+    case 'backup':openModal(`<h2>Backup &amp; restore</h2><p style="color:var(--muted)">Copy this text and keep it somewhere safe.</p><textarea class="inp" readonly style="min-height:130px">${esc(JSON.stringify(S))}</textarea><h4 class="sec2">Restore</h4><textarea class="inp" id="bkIn" placeholder="Paste backup text"></textarea><div class="row-end"><button class="btn" data-act="modalClose">Close</button><button class="btn pri" data-act="restore">Restore</button></div>`);break;
+    case 'restore':try{const o=JSON.parse($('#bkIn').value);if(!Array.isArray(o.users))throw 0;S=Object.assign(blank(),o);writeAll();closeModal();renderAdmin();toast('Backup restored');}catch(e){toast('That backup text is not valid.',true);}break;
+  }
+});
+document.addEventListener('input',e=>{
+  const s=e.target.dataset&&e.target.dataset.search;
+  if(s){ui.q[s]=e.target.value;$$(`[data-search="${s}"]`).forEach(i=>{if(i!==e.target)i.value=e.target.value;});renderApp();}
+});
+document.addEventListener('change',e=>{if(e.target.id==='fPrimary')renderPrimary();});
+['lEmail','lPass'].forEach(i=>$('#'+i).addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();}));
+['rEmail','rDiscord','rDiscordId','rRoblox','rPass'].forEach(i=>$('#'+i).addEventListener('keydown',e=>{if(e.key==='Enter')doRegister();}));
+
+/* ---- drag & drop: units -> calls / primary zone ---- */
+function dropTarget(el){if(!el||!el.closest||!isOCC())return null;return el.closest('.call-row.droppable,#primaryZone');}
+document.addEventListener('dragstart',e=>{
+  const r=e.target.closest&&e.target.closest('.unit-row[draggable="true"]');if(!r)return;
+  e.dataTransfer.setData('text/plain',r.dataset.email);e.dataTransfer.effectAllowed='move';
+  ui.drag=true;r.classList.add('dragging');
+});
+document.addEventListener('dragend',()=>{ui.drag=false;$$('.dragging,.drop-hot').forEach(x=>x.classList.remove('dragging','drop-hot'));renderApp();});
+document.addEventListener('dragover',e=>{const t=dropTarget(e.target);if(t){e.preventDefault();t.classList.add('drop-hot');}});
+document.addEventListener('dragleave',e=>{const t=dropTarget(e.target);if(t&&!t.contains(e.relatedTarget))t.classList.remove('drop-hot');});
+document.addEventListener('drop',e=>{
+  const t=dropTarget(e.target);if(!t)return;e.preventDefault();
+  const email=e.dataTransfer.getData('text/plain');t.classList.remove('drop-hot');
+  ui.drag=false;
+  if(t.id==='primaryZone'){const s=$('#fPrimary');if([...s.options].some(o=>o.value===email)){s.value=email;renderPrimary();}return;}
+  S=load();const c=S.calls.find(x=>x.id===t.dataset.k);
+  if(c&&assignUnit(c,email)){ui.tab='active';save();toast(`Assigned ${cs(S.units[email])} to Call #${c.num}`);}
+  else{renderApp();toast('That unit is already on the call, or the call is closed.',true);}
+});
+
+/* ---- cross-tab sync ---- */
+window.addEventListener('storage',e=>{
+  if(e.key===KEY){
+    S=load();
+    if(sess&&!sess.admin&&!me()){toast('Your account was removed by an administrator.',true);logout();return;}
+    renderAll();
+  }else if(e.key===PKEY){P=loadP();if(screen==='app')renderApp();}
+});
+idbRecover();
+boot();
+</script>
+</body>
+</html>
